@@ -1191,7 +1191,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ecbb8e330f1da04abb2cb432caf9c8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 8
+  moveSpeed: 10
   jumpForce: 2
   dashForce: 5
   groundDetector: {fileID: 1334513080}
