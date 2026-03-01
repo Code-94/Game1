@@ -26,7 +26,7 @@ public class PlayerI : MonoBehaviour
 
     public void OnMove(InputAction.CallbackContext ctx)
     {
-        Debug.Log("is running" + ctx.ReadValue<float>());
+        Debug.Log("is running :" + ctx.ReadValue<float>());
         moveInput = ctx.ReadValue<float>();
     }
 

@@ -8,13 +8,27 @@ public class PlayerMove : MonoBehaviour
     [SerializeField] private float jumpForce;
     [SerializeField] private float dashForce;
     [SerializeField] private Detector groundDetector;
+    [SerializeField] private Transform rightHitDetector;
+    [SerializeField] private Transform leftHitDetector;
+    [SerializeField] private float radius;
+    [SerializeField] private LayerMask layerMask;
+    [SerializeField] private float playerMaxHp;
+    [SerializeField] private ParticleSystem flash;
+    
+    
     [SerializeField] private float gravityMod;
 
     private Rigidbody2D _rb;
     private PlayerI _input;
     private SpriteRenderer _sprite;
     private Animator _animator;
-    private bool isIt;
+    private Enemy _enemy;
+    
+    public float playerHp;
+    
+    public float damage;
+
+    
 
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -24,6 +38,9 @@ public class PlayerMove : MonoBehaviour
         _input = GetComponent<PlayerI>();
         _sprite = GetComponent<SpriteRenderer>();
         _animator = GetComponent<Animator>();
+        _enemy = GetComponent<Enemy>();
+        
+
     }
 
     // Update is called once per frame
@@ -35,6 +52,17 @@ public class PlayerMove : MonoBehaviour
             if (_rb.linearVelocityX > 0)
             {
                 _animator.SetBool("isRunning", true);
+                
+                if (_input.jumpInput)
+                {
+                    _rb.AddForce(jumpForce * Vector2.up, ForceMode2D.Impulse);
+                    _animator.SetBool("isJumping", true);
+                }
+                else
+                {
+                    _animator.SetBool("isJumping", false);
+                }
+                
                 
             } else if (_rb.linearVelocityX < 0)
             {
@@ -56,13 +84,14 @@ public class PlayerMove : MonoBehaviour
 
             if (_input.slashInput)
             {
-                //_animator.SetBool("isSlashing", true);
-                _animator.SetTrigger("slash");
+                _animator.SetBool("isSlashing", true);
+                flash.Play();
+                //_animator.SetTrigger("slash");
+                
+            }else
+            {
+                 _animator.SetBool("isSlashing", false);
             }
-            // else
-            // {
-            //     _animator.SetBool("isSlashing", false);
-            // }
 
             if (_input.dashInput)
             {
@@ -75,6 +104,11 @@ public class PlayerMove : MonoBehaviour
                     _rb.AddForce(dashForce * Vector2.left, ForceMode2D.Impulse);
                 }
                 _animator.SetTrigger("dash");
+            }
+
+            if (playerHp <= 0)
+            {
+                StartCoroutine(IsDying(1.0f));
             }
             
             
@@ -89,13 +123,13 @@ public class PlayerMove : MonoBehaviour
             if (_input.jumpInput)
             {
                 _rb.AddForce(jumpForce * Vector2.up, ForceMode2D.Impulse);
-                //_animator.SetBool("isJumping", true);
-                _animator.SetTrigger("jump");
+                _animator.SetBool("isJumping", true);
+                
                 
             }
             else
             {
-                //_animator.SetBool("isJumping", false);
+                _animator.SetBool("isJumping", false);
             }
             //_animator.SetBool("isFalling" , false);
 
@@ -107,5 +141,40 @@ public class PlayerMove : MonoBehaviour
         }
     }
 
+    public void Attack()
+    {
+        Collider2D[] Rhit = Physics2D.OverlapCircleAll(rightHitDetector.transform.position, radius, layerMask);
+
+        foreach (Collider2D enemy in Rhit)
+        {
+            Debug.Log("is hit");
+            enemy.GetComponent<Enemy>().health -= damage;
+
+        }
+        
+        Collider2D[] Lhit = Physics2D.OverlapCircleAll(leftHitDetector.transform.position, radius, layerMask);
+
+        foreach (Collider2D enemy in Lhit)
+        {
+            Debug.Log("is hit");
+            enemy.GetComponent<Enemy>().health -= damage;
+        }
+    }
     
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(rightHitDetector.transform.position, radius);
+        
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(leftHitDetector.transform.position, radius);
+    }
+    
+    private IEnumerator IsDying(float waitSecond)
+    {
+        
+        _animator.SetTrigger("isDead");
+        yield return new WaitForSeconds(waitSecond);
+        gameObject.SetActive(false);
+    }
 }
